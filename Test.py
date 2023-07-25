@@ -52,7 +52,7 @@ parser.add_argument('--th', type=float, default=0.01, help='threshold for test u
 parser.add_argument('--num_workers_test', type=int, default=8, help='number of workers for the test loader')
 parser.add_argument('--dataset_type', type=str, default='ped2', help='type of dataset: ped2, avenue, shanghai')
 parser.add_argument('--dataset_path', type=str, default='data/', help='directory of data')
-parser.add_argument('--model_dir', type=str, help='directory of model')
+parser.add_argument('--model_dir', type=str, default='./exp/ped2/log/ped2_model_1000.pth', help='directory of model')
 
 args = parser.parse_args()
 
@@ -131,13 +131,15 @@ for video in sorted(videos_list):
 
 
 if not os.path.isdir(psnr_dir):
-    os.mkdir(psnr_dir)
+    os.makedirs(psnr_dir, exist_ok=True)
 
 ckpt = snapshot_path
 ckpt_name = ckpt.split('_')[-1]
 ckpt_id = int(ckpt.split('/')[-1].split('_')[-1][:-4])
 # Loading the trained model
 model = torch.load(ckpt)
+# model = convAE(args.c, args.t_length, args.psize, args.fdim[0], args.pdim[0])
+# model.load_state_dict(torch.load(ckpt)['state_dict'])
 if type(model) is dict:
     model = model['state_dict']
 model.cuda()
@@ -216,10 +218,12 @@ for video in sorted(videos_list):
     anomaly_score_total_list += score_sum(aa, bb, args.alpha)
 
 anomaly_score_total = np.asarray(anomaly_score_total_list)
-accuracy_total = 100*AUC(anomaly_score_total, np.expand_dims(1-labels_list, 0))
+accuracy_total = 100*AUC(anomaly_score_total[:len(labels_list)], np.expand_dims(1-labels_list, 0))
 
 print('The result of Version {0} Epoch {1} on {2}'.format(psnr_dir.split('/')[-1], ckpt_name, args.dataset_type))
 print('Total AUC: {:.4f}%'.format(accuracy_total))
+
+depict(videos_list, psnr_list, feature_distance_list, labels_list)
 
 
 

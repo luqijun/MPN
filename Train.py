@@ -23,6 +23,7 @@ import copy
 import time
 from model.utils import DataLoader
 from model.base_model import *
+from model.utils import VideoDataLoader
 from sklearn.metrics import roc_auc_score
 from utils import *
 import random
@@ -33,7 +34,7 @@ warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser(description="MPN")
 parser.add_argument('--gpus', nargs='+', type=str, help='gpus')
-parser.add_argument('--batch_size', type=int, default=4, help='batch size for training')
+parser.add_argument('--batch_size', type=int, default=1, help='batch size for training')
 parser.add_argument('--test_batch_size', type=int, default=1, help='batch size for test')
 parser.add_argument('--epochs', type=int, default=1000, help='number of epochs for training')
 parser.add_argument('--loss_fra_reconstruct', type=float, default=1.00, help='weight of the frame reconstruction loss')
@@ -49,10 +50,10 @@ parser.add_argument('--fdim', type=list, default=[128], help='channel dimension 
 parser.add_argument('--pdim', type=list, default=[128], help='channel dimension of the prototypes')
 parser.add_argument('--psize', type=int, default=10, help='number of the prototype items')
 parser.add_argument('--alpha', type=float, default=0.6, help='weight for the anomality score')
-parser.add_argument('--num_workers', type=int, default=8, help='number of workers for the train loader')
-parser.add_argument('--num_workers_test', type=int, default=8, help='number of workers for the test loader')
+parser.add_argument('--num_workers', type=int, default=1, help='number of workers for the train loader')
+parser.add_argument('--num_workers_test', type=int, default=1, help='number of workers for the test loader')
 parser.add_argument('--dataset_type', type=str, default='ped2', help='type of dataset: ped2, avenue, shanghai')
-parser.add_argument('--dataset_path', type=str, default='.data/', help='directory of data')
+parser.add_argument('--dataset_path', type=str, default='./data/', help='directory of data')
 parser.add_argument('--exp_dir', type=str, default='log', help='directory of log')
 parser.add_argument('--resume', type=str, default='exp/ped2/example.pth', help='file path of resume pth')
 parser.add_argument('--debug', type=bool, default=False, help='if debug')
@@ -107,7 +108,7 @@ if os.path.exists(args.resume):
   optimizer_D.load_state_dict(checkpoint['optimizer_D'])
 
 
-if len(args.gpus[0])>1:
+if args.gpus and len(args.gpus[0])>1:
   model = nn.DataParallel(model)
 
 # Report the training process
@@ -177,7 +178,7 @@ for epoch in range(start_epoch, args.epochs):
     # Save the model
     if epoch%100==0:
       
-      if len(args.gpus[0])>1:
+      if args.gpus and len(args.gpus[0])>1:
         model_save = model.module
       else:
         model_save = model

@@ -135,7 +135,7 @@ class Meta_Prototype(nn.Module):
             
             # Distinction constrain
             keys_ = F.normalize(keys, dim=-1)
-            dis = 1-distance(keys_.unsqueeze(1), keys_.unsqueeze(2))
+            dis = 1-distance(keys_.unsqueeze(1), keys_.unsqueeze(2)) # 计算原型之间的距离 为了使用原型之间尽可能远离彼此 促进多样性
             
             mask = dis>0
             dis *= mask.float()
@@ -150,17 +150,17 @@ class Meta_Prototype(nn.Module):
             loss_mse = torch.nn.MSELoss()
 
             keys = F.normalize(keys, dim=-1)
-            _, softmax_score_proto = self.get_score(keys, query)
+            _, softmax_score_proto = self.get_score(keys, query) # 计算注意力
 
             new_query = softmax_score_proto.unsqueeze(-1)*keys.unsqueeze(1)
             new_query = new_query.sum(2)
             new_query = F.normalize(new_query, dim=-1)
 
             # maintain the distinction among attribute vectors
-            _, gathering_indices = torch.topk(softmax_score_proto, 2, dim=-1)
+            _, gathering_indices = torch.topk(softmax_score_proto, 2, dim=-1) # 得到前两个
         
             # 1st closest memories
-            pos = torch.gather(keys,1,gathering_indices[:,:,:1].repeat((1,1,dims)))
+            pos = torch.gather(keys,1,gathering_indices[:,:,:1].repeat((1,1,dims))) # 从keys中抽取数据
 
             fea_loss = loss_mse(query, pos)
 

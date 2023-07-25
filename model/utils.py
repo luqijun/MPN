@@ -229,7 +229,7 @@ class MetaDataLoader(data.Dataset):
         video_name = self.video_names[index]
         length = self.videos[video_name]['length']-4
         seg_ind = random.sample(range(0, self.num_segs), 1)
-        frame_ind = random.sample(range(0, length//self.num_segs), self.task_size)
+        frame_ind = random.sample(range(0, max(length//self.num_segs, self.task_size)), self.task_size)
 
         batch = []
         for j in range(self.task_size):

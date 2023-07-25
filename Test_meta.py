@@ -55,7 +55,7 @@ parser.add_argument('--th', type=float, default=0.01, help='threshold for test u
 parser.add_argument('--num_workers_test', type=int, default=8, help='number of workers for the test loader')
 parser.add_argument('--dataset_type', type=str, default='ped2', help='type of dataset: ped2, avenue, shanghai')
 parser.add_argument('--dataset_path', type=str, default='data/', help='directory of data')
-parser.add_argument('--model_dir', type=str, help='directory of model')
+parser.add_argument('--model_dir', type=str, default='exp/ped2/log/', help='directory of model')
 
 args = parser.parse_args()
 
@@ -119,7 +119,8 @@ print('Evaluation of Version {0} on {1}'.format(args.model_dir.split('/')[-1], a
 if 'ucf' in args.model_dir:
     snapshot_dir = args.model_dir.replace(args.dataset_type,'UCF')
 else:
-    snapshot_dir = args.model_dir.replace(args.dataset_type,'SHTech')
+    # snapshot_dir = args.model_dir.replace(args.dataset_type,'SHTech')
+    snapshot_dir = args.model_dir.replace(args.dataset_type, 'shanghai')
 
 psnr_dir = args.model_dir.replace('exp','results').replace('k1','k'+str(args.K_hots)) +'_i'+str(args.test_iter)
 
@@ -322,7 +323,7 @@ if os.path.isdir(snapshot_dir):
             psnr_list = file['psnr'].item()
             feature_distance_list = file['feaRe'].item()
             anomaly_score_total_list = []
-           if args.dataset_type =='avenue':
+            if args.dataset_type =='avenue':
                 ae = []
                 me = []
                 for video in sorted(videos_list):

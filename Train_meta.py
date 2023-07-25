@@ -30,7 +30,9 @@ from tqdm import tqdm
 import argparse
 import warnings
 import pdb
-warnings.filterwarnings("ignore") 
+warnings.filterwarnings("ignore")
+
+#dataset:http://101.32.75.151:8181/dataset/
 
 parser = argparse.ArgumentParser(description="MPN")
 parser.add_argument('--gpus', nargs='+', type=str, help='gpus')
@@ -50,7 +52,7 @@ parser.add_argument('--alpha', type=float, default=0.5, help='weight for the ano
 parser.add_argument('--num_workers', type=int, default=8, help='number of workers for the train loader')
 parser.add_argument('--num_workers_test', type=int, default=8, help='number of workers for the test loader')
 parser.add_argument('--dataset_type', type=str, default='ped2', help='type of dataset: ped2, avenue, shanghai')
-parser.add_argument('--dataset_path', type=str, default='.data/', help='directory of data')
+parser.add_argument('--dataset_path', type=str, default='./data/', help='directory of data')
 parser.add_argument('--exp_dir', type=str, default='log', help='directory of log')
 parser.add_argument('--resume', type=str, default='exp/pretrain_model.pth', help='file path of resume pth')
 parser.add_argument('--debug', type=bool, default=False, help='if debug')
@@ -93,11 +95,12 @@ model = convAE(args.c, args.t_length, args.psize, args.fdim, args.pdim)
 model.cuda()
 
 
-if len(args.gpus[0])>1:
+if args.gpus and len(args.gpus[0])>1:
   model = nn.DataParallel(model)
 
 start_epoch = 0
 
+ckpt = ''
 if os.path.exists(args.meta_base):
   ckpt = args.meta_base
 
@@ -210,16 +213,16 @@ for epoch in range(start_epoch, args.meta_epoch):
 
 
     # Save the model and the memory items
-    if epoch%100==0:
+    if (epoch+1)%100==0:
         state = {
-              'epoch': epoch,
+              'epoch': epoch+1,
               'meta_init': meta_init,
               'meta_alpha': meta_alpha,
               'meta_init_optimizer' : meta_init_optimizer.state_dict(),
               'meta_alpha_optimizer': meta_alpha_optimizer.state_dict(),
 
             }
-        torch.save(state, os.path.join(log_dir, 'model_'+str(epoch)+'.pth'))
+        torch.save(state, os.path.join(log_dir, 'model_'+str(epoch+1)+'.pth'))
 
 print('Training is finished')
 if not args.debug:
